@@ -1,0 +1,38 @@
+REGRESSION MODEL -- mass
+
+library(rio)
+library(tidyverse)
+library(ggplot2)
+library(caret)
+
+raw_data <-import("https://raw.githubusercontent.com/finnstats/finnstats/a9164a541ee2f4a830bfb66363ac3b7edc8b3449/binary.csv")
+
+str(raw_data)
+ 
+
+raw_data$admit <- as.factor(case_when(raw_data$admit == 1 ~ "Success", raw_data$admit == 0 ~ "Fail"))
+raw_data$rank <- as.factor(raw_data$rank)
+
+xtabs(~admit + rank, raw_data)
+
+ 
+
+model <- glm(admit ~ gre + gpa + rank, data = raw_data, family = "binomial")
+summary(model)
+
+ 
+
+result <- data.frame(predict_pct = model$fitted.values, actual = raw_data$admit)
+result <- result %>% arrange(predict_pct)
+result$rank <- 1:nrow(result)
+
+ggplot(result) +
+  geom_point(aes(x = rank, y = predict_pct, color = actual, shape = actual), alpha = 0.5) +
+  labs(title = "Logistic Regression Model for Student Admission") +
+  xlab("Rank") + ylab("Probability") + theme_classic()
+
+result$predict <- if_else(result$predict_pct > 0.5, "Success", "Fail")
+confusionMatrix(as.factor(result$predict), result$actual, positive = "Success")
+
+ 
+

@@ -1,0 +1,61 @@
+Hbase / MongoDB and manipulate it using R / Python
+
+
+from pymongo import MongoClient
+from pymongo.server_api import ServerApi
+
+# MongoDB connection URI (secure handling recommended)
+MONGO_URI = "mongodb+srv://dineshskumawat0:<db_password>@cluster0.v50o3.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+DATABASE_NAME = "sample_mflix"
+
+# Connect to MongoDB
+client = MongoClient(MONGO_URI, server_api=ServerApi('1'))
+try:
+    client.admin.command('ping')
+    print("Connection Established: Successfully connected to MongoDB!")
+except Exception as e:
+    print(f"Connection Failed: {e}")
+    exit()
+
+db = client[DATABASE_NAME]
+
+# Collection references
+comments_collection = db["comments"]
+movies_collection = db["movies"]
+users_collection = db["users"]
+
+def insert_document(collection, document):
+    """Insert a document into a collection"""
+    result = collection.insert_one(document)
+    print(f"Inserted document ID: {result.inserted_id}")
+
+def find_documents(collection, query={}, limit=5):
+    """Find documents based on a query"""
+    results = collection.find(query).limit(limit)
+    for doc in results:
+        print(doc)
+
+def update_document(collection, query, update_values):
+    """Update documents based on a query"""
+    result = collection.update_many(query, {"$set": update_values})
+    print(f"Matched {result.matched_count}, Modified {result.modified_count}")
+
+def delete_document(collection, query):
+    """Delete documents based on a query"""
+    result = collection.delete_many(query)
+    print(f"Deleted {result.deleted_count} documents")
+
+if __name__ == "__main__":
+    # Example usage
+    print("\n--- MongoDB Connection Established ---")
+    sample_doc = {"name": "Dinesh Kumawat", "email": "dineshskumawat0@gmail.com"}
+    insert_document(users_collection, sample_doc)
+    
+    print("\nFinding Users:")
+    find_documents(users_collection, {"name": "Dinesh Kumawat"})
+    
+    print("\nUpdating User:")
+    update_document(users_collection, {"name": "Dinesh Kumawat"}, {"email": "dineshkumarskumawat@gmail.com"})
+    
+    print("\nDeleting User:")
+    delete_document(users_collection, {"name": "Dinesh Kumawat"})

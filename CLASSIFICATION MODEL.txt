@@ -1,0 +1,24 @@
+CLASSIFICATION MODEL 
+a. Install relevant package for classification. 
+b. Choose classifier for classification problem. 
+c. Evaluate the performance of classifier.
+
+
+library(caret)          
+library(randomForest)   
+
+raw_data$admit <- as.factor(raw_data$admit)
+
+set.seed(123)  # For reproducibility
+trainIndex <- createDataPartition(raw_data$admit, p = 0.8, list = FALSE)
+trainData <- raw_data[trainIndex, ]
+testData <- raw_data[-trainIndex, ]
+
+rf_model <- randomForest(admit ~ gre + gpa + rank, data = trainData)
+print(rf_model)
+
+ 
+predictions <- predict(rf_model, newdata = testData)
+
+confusion_matrix <- confusionMatrix(predictions, testData$admit)
+print(confusion_matrix)

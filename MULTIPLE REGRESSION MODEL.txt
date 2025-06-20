@@ -1,0 +1,31 @@
+MULTIPLE REGRESSION MODEL 
+
+library(rio)
+library(tidyverse)
+library(ggplot2)
+library(caret)
+
+raw_data <- import("https://raw.githubusercontent.com/finnstats/finnstats/a9164a541ee2f4a830bfb66363ac3b7edc8b3449/binary.csv")
+
+str(raw_data)
+raw_data$rank <- as.factor(raw_data$rank)
+
+model_multiple <- lm(gpa ~ gre + rank, data = raw_data)
+
+summary(model_multiple)
+
+ 
+
+
+raw_data$predicted_gpa <- predict(model_multiple, newdata = raw_data)
+ggplot(raw_data, aes(x = gpa, y = predicted_gpa)) +
+  geom_point(color = "blue") +
+  geom_smooth(method = "lm", color = "red") +
+  labs(title = "Actual vs Predicted GPA (Multiple Linear Regression)", x = "Actual GPA", y = "Predicted GPA") +
+  theme_classic()
+
+raw_data$residuals <- residuals(model_multiple)
+ggplot(raw_data, aes(x = predicted_gpa, y = residuals)) +   geom_point(color = "darkgreen") +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
+  labs(title = "Residuals vs Predicted GPA", x = "Predicted GPA", y = "Residuals") +
+  theme_classic()

@@ -1,0 +1,97 @@
+MapReduce program that processes a weather dataset.
+Download data from: https://www.ncei.noaa.gov/data/global-historical-climatology-network-daily/access/AGE00147718.csv
+
+
+
+Create MaxTemperaturePerYear.java
+import java.io.IOException;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+
+public class MaxTemperaturePerYear {
+
+    public static class TemperatureMapper extends Mapper<LongWritable, Text, Text, IntWritable> {
+        private Text year = new Text();
+        private IntWritable temperature = new IntWritable();
+
+        public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
+            String line = value.toString();
+            String[] fields = line.split("\t");  // Split by tab
+
+            // Skip header line
+            if (key.get() == 0 && fields[0].equals("STATION")) return;
+
+            try {
+                String date = fields[1]; // Extract DATE
+                String tmaxStr = fields[8].trim(); // Extract and trim TMAX
+                
+                // Extract year correctly
+                String extractedYear = extractYear(date);
+                if (extractedYear == null) return;
+
+                // Check if TMAX is a valid integer
+                if (!tmaxStr.isEmpty() && tmaxStr.matches("-?\\d+")) {
+                    year.set(extractedYear); // Set year
+                    temperature.set(Integer.parseInt(tmaxStr)); // Convert TMAX to int
+                    context.write(year, temperature); // Emit (year, temperature)
+                }
+            } catch (Exception e) {
+                // Ignore malformed data
+            }
+        }
+
+        private String extractYear(String date) {
+            String[] dateParts = date.split("[-/]"); // Support YYYY-MM-DD or MM/DD/YYYY
+            if (dateParts.length == 3) {
+                if (dateParts[0].length() == 4) { // YYYY-MM-DD
+                    return dateParts[0];
+                } else if (dateParts[2].length() == 4) { // MM/DD/YYYY
+                    return dateParts[2];
+                }
+            }
+            return null; // Invalid date format
+        }
+    }
+
+    public static class TemperatureReducer extends Reducer<Text, IntWritable, Text, IntWritable> {
+        public void reduce(Text key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
+            int maxTemp = Integer.MIN_VALUE;
+            for (IntWritable val : values) {
+                maxTemp = Math.max(maxTemp, val.get());
+            }
+            context.write(key, new IntWritable(maxTemp));
+        }
+    }
+
+    public static void main(String[] args) throws Exception {
+        Configuration conf = new Configuration();
+        Job job = Job.getInstance(conf, "Max Temperature Per Year");
+
+        job.setJarByClass(MaxTemperaturePerYear.class);
+        job.setMapperClass(TemperatureMapper.class);
+        job.setReducerClass(TemperatureReducer.class);
+
+        job.setMapOutputKeyClass(Text.class);
+        job.setMapOutputValueClass(IntWritable.class);
+        job.setOutputKeyClass(Text.class);
+        job.setOutputValueClass(IntWritable.class);
+
+        FileInputFormat.addInputPath(job, new Path(args[0]));
+        FileOutputFormat.setOutputPath(job, new Path(args[1]));
+
+        System.exit(job.waitForCompletion(true) ? 0 : 1);
+    }
+}
+
+
+Command: hadoop com.sun.tools.javac.Main MaxTemperaturePerYear.java
+
+	jar cf max-temp.jar MaxTemperaturePerYear*.class
