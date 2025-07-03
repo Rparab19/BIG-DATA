@@ -1,4 +1,4 @@
-CLASSIFICATION MODEL 
+9.CLASSIFICATION MODEL -- r
 a. Install relevant package for classification. 
 b. Choose classifier for classification problem. 
 c. Evaluate the performance of classifier.
