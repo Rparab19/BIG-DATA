@@ -1,4 +1,4 @@
-MULTIPLE REGRESSION MODEL 
+8.MULTIPLE REGRESSION MODEL --r
 
 library(rio)
 library(tidyverse)
