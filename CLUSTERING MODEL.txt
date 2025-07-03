@@ -1,4 +1,4 @@
-CLUSTERING MODEL 
+10.CLUSTERING MODEL 
 a. Clustering algorithms for unsupervised classification. 
 b. Plot the cluster data using R visualizations.
 
