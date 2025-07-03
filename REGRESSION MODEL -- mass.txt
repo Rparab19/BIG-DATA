@@ -1,4 +1,4 @@
-REGRESSION MODEL -- mass
+7.REGRESSION MODEL -- mass -- r
 
 library(rio)
 library(tidyverse)
