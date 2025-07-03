@@ -1,4 +1,4 @@
-SVM classification 
+6.SVM classification -- p
 
 import numpy as np
 import matplotlib.pyplot as plt
